@@ -145,7 +145,7 @@ def parse_data_extentions(body):
         if cse.isdigit() and cse != "000":
             parsed.update({'course': int(cse) if 1 <= int(cse) <= 360 else 0})
         if spd.isdigit() and spd != "000":
-            parsed.update({'speed': int(spd)*1.852})
+            parsed.update({'speed': int(spd) * 1.852})
 
         # DF Report format
         # Page 29 of teh spec
@@ -172,7 +172,7 @@ def parse_data_extentions(body):
                 'phg_power': int(phg[0]) ** 2, # watts
                 'phg_height': (10 * (2 ** (ord(phg[1]) - 0x30))) * 0.3048, # in meters
                 'phg_gain': 10 ** (int(phg[2]) / 10.0), # dB
-                })
+            })
 
             phg_dir = int(phg[3])
             if phg_dir == 0:
@@ -191,15 +191,19 @@ def parse_data_extentions(body):
                                        ) * 1.60934
 
             if phgr:
-                # PHG rate per hour
-                parsed['phg'] += phgr[0]
-                parsed.update({'phg_rate': int(phgr[0], 16)}) # as decimal
+                # Validate hex character before parsing
+                if phgr[0] in "0123456789ABCDEF":
+                    # PHG rate per hour
+                    parsed['phg'] += phgr[0]
+                    parsed.update({'phg_rate': int(phgr[0], 16)})  # as decimal
+                else:
+                    logger.error("Invalid PHGR character: %s" % phgr[0])
         else:
-                match = re.findall(r"^RNG(\d{4})", body)
-                if match:
-                    rng = match[0]
-                    body = body[7:]
-                    parsed.update({'rng': int(rng) * 1.609344})  # miles to km
+            match = re.findall(r"^RNG(\d{4})", body)
+            if match:
+                rng = match[0]
+                body = body[7:]
+                parsed.update({'rng': int(rng) * 1.609344})  # miles to km
 
     return body, parsed
 
