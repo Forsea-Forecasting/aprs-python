@@ -1,5 +1,3 @@
-import re
-from aprslib.parsing.__init__ import parse
 from aprslib.exceptions import UnknownFormat
 from aprslib.exceptions import ParseError
 
@@ -8,6 +6,10 @@ __all__ = [
         ]
 
 def parse_thirdparty(body):
+    # Imported lazily to avoid a circular import with aprslib.parsing,
+    # which imports this module via ``import *``.
+    from aprslib.parsing import parse
+
     parsed = {'format':'thirdparty'}
 
     # Parse sub-packet
